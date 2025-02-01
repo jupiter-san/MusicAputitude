@@ -3,6 +3,7 @@ import librosa
 import librosa.display
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 # 曲をメルスペクトログラムに変換し、画像にして保存するSUB
 def melspectrogram_conv(y,sr,s_name):
@@ -26,38 +27,42 @@ def melspectrogram_conv(y,sr,s_name):
 
 
 dir_name ="/home/j/MusicAputitude/music"
+column_names = ["file","label_name"]
+name_dic = {}
+
 for current_dir,dirs,files in os.walk(dir_name):
     for file in files:
         # mp3データのみ以下の処理を行う
         if file.rsplit(".")[-1] == "mp3":
             file_name = os.path.join(current_dir,file)
             file_noext = os.path.splitext(file)[0]
-            new_file_path = os.path.join(current_dir.rsplit("\\")[-1].replace("mp3_data", "image_data")) 
+            new_file_path = os.path.join(current_dir.replace("mp3_data", "image_data")) 
 
             # 保存ディレクトリが存在しないと書き出し時にエラーになるので、存在確認＆作成
             if not os.path.exists(new_file_path):
                 os.makedirs(new_file_path)
         
-            #print(new_file_path)
             offset = 0.0
             i = 1
-            len_y = 60
-            # 曲のはじめから60秒ごとに分割。60秒未満は捨てる。
-            while len_y == 60:
+            # 曲のはじめから60秒ごとに分割。
+            # offset 開始秒を60秒ずつずらすことで、60秒ごとにデータを分割
+            while True:
                 # Load a flac file from 0(s) to 60(s) and resample to 4.41 KHz
                 y, sr = librosa.load(file_name, sr=4410, offset=offset, duration=60.0)
-                len_y = y.shape[0] / sr
-                if len_y == 60:
-                    # メルスペクトグラム画像の書き出し
-                    s_name = os.path.join(new_file_path,f'{file_noext}_{i:02}.png')
-                    melspectrogram_conv(y,sr,s_name)
-                    # 次の分割の読み込み
-                    offset += 60
-                    i += 1
+                # 最後の60秒未満は捨てる。
+                if y.shape[0] / sr < 60: break
+                # メルスペクトグラム画像の書き出し
+                #　music/{musician}/image_data/ファイル名_01.png　の形式
+                s_name = os.path.join(new_file_path,f'{file_noext}_{i:02}.png')
+                melspectrogram_conv(y,sr,s_name)
+                # 次の分割の読み込み
+                offset += 60
+                i += 1
                 
-            # offset 開始秒を60秒ずつずらすことで、60秒ごとにデータを分割
-            # 画像出力にはplt.savefigを使う
-            #　music/{musician}/image_data/ファイル名_01.png
-
-            # pandasでcsv　ファイルパス、教師ラベル
+            # Target の作成
+            # (ファイルパス,教師ラベル)をcsvで書き出す
+            name_dic[s_name] = current_dir.rsplit("/")[-2]
+        
+df = pd.DataFrame.from_dict(name_dic,orient="index",columns=column_names)
+df.to_csv(os.path.join(os.getcwd(),"music_label.csv"))
 
