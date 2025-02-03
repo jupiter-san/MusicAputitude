@@ -22,19 +22,19 @@ def melspectrogram_conv(y,sr,s_name):
     plt.title('Mel spectrogram')
     plt.tight_layout()
     plt.axis('off')
-    plt.subplots_adjust(left=0,right=1,bottom=0,top=1)
-    plt.savefig(s_name,format="png")
+    plt.subplots_adjust(left=0,right=1,bottom=0, top=1)
+    plt.savefig(s_name, format="png")
+    plt.close()
 
 
-dir_name ="/home/j/MusicAputitude/music"
-column_names = ["file","label_name"]
-name_dic = {}
+dir_name ="music/ARASHI"
+data = []
 
 for current_dir,dirs,files in os.walk(dir_name):
     for file in files:
         # mp3データのみ以下の処理を行う
         if file.rsplit(".")[-1] == "mp3":
-            file_name = os.path.join(current_dir,file)
+            file_name = os.path.join(current_dir, file)
             file_noext = os.path.splitext(file)[0]
             new_file_path = os.path.join(current_dir.replace("mp3_data", "image_data")) 
 
@@ -53,7 +53,7 @@ for current_dir,dirs,files in os.walk(dir_name):
                 if y.shape[0] / sr < 60: break
                 # メルスペクトグラム画像の書き出し
                 #　music/{musician}/image_data/ファイル名_01.png　の形式
-                s_name = os.path.join(new_file_path,f'{file_noext}_{i:02}.png')
+                s_name = os.path.join(new_file_path, f'{file_noext}_{i:02}.png')
                 melspectrogram_conv(y,sr,s_name)
                 # 次の分割の読み込み
                 offset += 60
@@ -61,8 +61,8 @@ for current_dir,dirs,files in os.walk(dir_name):
                 
             # Target の作成
             # (ファイルパス,教師ラベル)をcsvで書き出す
-            name_dic[s_name] = current_dir.rsplit("/")[-2]
-        
-df = pd.DataFrame.from_dict(name_dic,orient="index",columns=column_names)
-df.to_csv(os.path.join(os.getcwd(),"music_label.csv"))
+            data.append([file,current_dir.rsplit("/")[-2]])
+print(data)  
+df = pd.DataFrame(data, columns=['file','label'])
+df.to_csv("music_label_ARASHI.csv")
 
