@@ -12,7 +12,7 @@ train_generator = datagen.flow_from_directory(
         'git_conn/train',
         subset='training',
         target_size=(80, 240),
-        batch_size=16,
+        batch_size=64,
         class_mode='categorical'
         )
 
@@ -20,14 +20,14 @@ val_generator = datagen.flow_from_directory(
         'git_conn/train',
         subset='validation',
         target_size=(80, 240),
-        batch_size=16,
+        batch_size=64,
         class_mode='categorical'
         )
 
 test_generator = datagen.flow_from_directory(
         'git_conn/test',
         target_size=(80, 240),
-        batch_size=16,
+        batch_size=64,
         class_mode='categorical'
         )
 
@@ -63,3 +63,4 @@ result[['loss','val_loss']].plot(ylim=[0, 2])
 result[['accuracy', 'val_accuracy']].plot(ylim=[0, 1])
 
 plt.show()
+
