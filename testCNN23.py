@@ -1,53 +1,58 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 import tensorflow as tf
-
-from tensorflow.keras import utils
-utils.set_random_seed(0)
-
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-datagen = ImageDataGenerator(rescale=1/255,validation_split=0.25)
-
-train_generator = datagen.flow_from_directory(
-        'git_conn/train',
-        subset='training',
-        target_size=(80, 240),
-        batch_size=128,
-        class_mode='categorical'
-        )
-
-val_generator = datagen.flow_from_directory(
-        'git_conn/train',
-        subset='validation',
-        target_size=(80, 240),
-        batch_size=128,
-        class_mode='categorical'
-        )
-
-test_generator = datagen.flow_from_directory(
-        'git_conn/test',
-        target_size=(80, 240),
-        batch_size=128,
-        class_mode='categorical'
-        )
-
-
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Flatten, Dense, Conv2D, MaxPooling2D, Dropout
+from tensorflow.keras import utils
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+utils.set_random_seed(0)
+
+datagen = ImageDataGenerator(rescale=1/255, validation_split=0.25)
+batch_size = 64
+train_generator = datagen.flow_from_directory(
+    'git_conn/train',
+    subset='training',
+    target_size=(240, 80),
+    batch_size=batch_size,
+    class_mode='categorical'
+    )
+
+val_generator = datagen.flow_from_directory(
+    'git_conn/train',
+    subset='validation',
+    target_size=(240, 80),
+    batch_size=batch_size,
+    class_mode='categorical'
+    )
+
+test_generator = datagen.flow_from_directory(
+    'git_conn/test',
+    target_size=(240, 80),
+    batch_size=batch_size,
+    class_mode='categorical'
+    )
+
 # モデル定義
 model = Sequential()
-model.add(Conv2D(32, (5, 5), activation='relu', input_shape=(80, 240, 3)))
-model.add(MaxPooling2D(pool_size=(5, 3)))
-model.add(Conv2D(32, (5, 5), activation='relu'))
-model.add(MaxPooling2D(pool_size=(5, 3)))
+model.add(Conv2D(32, (5, 5), activation='relu', padding='same', input_shape=(240, 80, 3)))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(32, (5, 5), activation='relu', padding='same'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(32, (5, 5), activation='relu', padding='same'))
+model.add(MaxPooling2D(pool_size=(3, 4)))
 model.add(Flatten())
-model.add(Dropout(0.5))
+# model.add(Dense(128, activation='relu'))
+# model.add(Dropout(0.5))
 model.add(Dense(64, activation='relu'))
-model.add(Dense(8, activation='softmax'))
+model.add(Dropout(0.5))
+model.add(Dense(4, activation='softmax'))
+model.summary()
 
 model.compile(loss='categorical_crossentropy',
-              optimizer='adam',
-              metrics='accuracy')
+    optimizer='adam',
+    metrics='accuracy')
 
 history = model.fit(
     train_generator,
@@ -55,7 +60,7 @@ history = model.fit(
     epochs=100
 )
 
-import pandas as pd
+
 result = pd.DataFrame(history.history)
 
 result[['loss','val_loss']].plot(ylim=[0, 2])

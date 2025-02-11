@@ -7,7 +7,7 @@ filename = '/home/j/MusicAputitude/music/ARASHI/mp3_data/ARASHI - ｢未完｣ [
 y, sr = librosa.load(filename, sr=4410, offset=0.0, duration=60.0)
 #librosa.display.waveshow(y=y, sr=sr)
 # sr 1秒間に4410個データが出力される
-# 107031 = 4010 * 24.27     3
+# 107031 = 4410 * 24.27     3
 print(y.shape[0] / sr)
 # plt.show()
 #
